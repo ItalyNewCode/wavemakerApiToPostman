@@ -38,12 +38,12 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           
         run: |
-          FILE_URL="https://api.github.com/repos/ItalyNewCode/wavemakerApiToPostman/refs/heads/main/package.json"
+          FILE_URL="https://api.github.com/repos/ItalyNewCode/wavemakerApiToPostman/contents/package.json"
           curl -H "Authorization: token $GITHUB_TOKEN" -H "Accept: application/vnd.github.v3.raw" -o package.json "$FILE_URL"
           echo "Fetched main/package.json file."
 
           # Fetch the postman-swagger.js  file
-          FILE_URL="https://api.github.com/repos/ItalyNewCode/wavemakerApiToPostman/refs/heads/main/postman-swagger.js"
+          FILE_URL="https://api.github.com/repos/ItalyNewCode/wavemakerApiToPostman/contents/postman-swagger.js"
           curl -H "Authorization: token $GITHUB_TOKEN" -H "Accept: application/vnd.github.v3.raw" -o postman-swagger.js "$FILE_URL"
           echo "Fetched postman-swagger.js file."
 
