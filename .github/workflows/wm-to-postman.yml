@@ -14,7 +14,7 @@ on:
     secrets:
       POSTMAN_API_KEY:
         required: true
-      POSTMAN_TARGET_UID:
+      POSTMAN_WORKSPACE_ID:
         required: true
       TARGET_COLLECTION:
         required: true
