@@ -37,7 +37,7 @@ jobs:
         run: npm i -g npm@${{ inputs.npm-version }}
 
       - name: Install script deps
-        run: npm install openapi-to-postmanv2 node-fetch@2 fs-extra glob
+        run: npm install
 
       - name: Run migration script
         env:
