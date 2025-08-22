@@ -62,4 +62,4 @@ jobs:
           POSTMAN_TARGET_UID: ${{ secrets.POSTMAN_WORKSPACE_ID }}
           POSTMAN_COLLECTION_NAME: ${{ secrets.TARGET_COLLECTION }}
           POSTMAN_PRUNE: "true"
-        run: node merge-postman.js
+        run: node postman-swagger.js
