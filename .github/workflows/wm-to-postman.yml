@@ -1,0 +1,48 @@
+name: REUSABLE ACTION - Build and Deploy a WAVEMAKER application to AWS Elastic Beanstalk
+
+on:
+  workflow_call:
+    inputs:
+      node-version:
+        required: false
+        type: string
+        default: '22.11.0'
+      npm-version:
+        required: false
+        type: string
+        default: '10.9.0'
+    secrets:
+      POSTMAN_API_KEY:
+        required: true
+      POSTMAN_TARGET_UID:
+        required: true
+      TARGET_COLLECTION:
+        required: true
+
+jobs:
+  swagger-to-postman:
+    name: Migrate collection from Wavemaker to Postman
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ inputs.node-version }}
+
+      - name: Use specific npm version
+        run: npm i -g npm@${{ inputs.npm-version }}
+
+      - name: Install script deps
+        run: npm install openapi-to-postmanv2 node-fetch@2 fs-extra glob
+
+      - name: Run migration script
+        env:
+          POSTMAN_API_KEY: ${{ secrets.POSTMAN_API_KEY }}
+          POSTMAN_TARGET_UID: ${{ secrets.POSTMAN_WORKSPACE_ID }}
+          POSTMAN_COLLECTION_NAME: ${{ secrets.TARGET_COLLECTION }}
+          POSTMAN_PRUNE: "true"
+        run: node postman-swagger.js
