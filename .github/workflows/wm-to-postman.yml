@@ -36,6 +36,9 @@ jobs:
       - name: Use specific npm version
         run: npm i -g npm@${{ inputs.npm-version }}
 
+      - name: Lista dei file
+        run: ls -al
+
       - name: Install script deps
         run: npm install
 
