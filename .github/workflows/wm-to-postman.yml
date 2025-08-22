@@ -25,7 +25,12 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      
+      - name: Checkout caller repo
+        uses: actions/checkout@v3
+        with:
+          repository: ${{ github.repository }}   # checks out the repo that triggered the workflow
+          ref: ${{ github.ref }}
+
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
@@ -34,19 +39,17 @@ jobs:
       - name: Use specific npm version
         run: npm i -g npm@${{ inputs.npm-version }}
 
-      - name: Fetch wavemaker to postman javascript files.
+      - name: Fetch wavemaker to postman javascript files
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          
         run: |
-          FILE_URL="https://api.github.com/repos/ItalyNewCode/wavemakerApiToPostman/contents/package.json"
-          curl -H "Authorization: token $GITHUB_TOKEN" -H "Accept: application/vnd.github.v3.raw" -o package.json "$FILE_URL"
-          echo "Fetched main/package.json file."
+          curl -H "Authorization: token $GITHUB_TOKEN" -H "Accept: application/vnd.github.v3.raw" \
+            -o package.json \
+            https://api.github.com/repos/ItalyNewCode/wavemakerApiToPostman/contents/package.json
 
-          # Fetch the postman-swagger.js  file
-          FILE_URL="https://api.github.com/repos/ItalyNewCode/wavemakerApiToPostman/contents/postman-swagger.js"
-          curl -H "Authorization: token $GITHUB_TOKEN" -H "Accept: application/vnd.github.v3.raw" -o postman-swagger.js "$FILE_URL"
-          echo "Fetched postman-swagger.js file."
+          curl -H "Authorization: token $GITHUB_TOKEN" -H "Accept: application/vnd.github.v3.raw" \
+            -o postman-swagger.js \
+            https://api.github.com/repos/ItalyNewCode/wavemakerApiToPostman/contents/postman-swagger.js
 
           ls -al
 
