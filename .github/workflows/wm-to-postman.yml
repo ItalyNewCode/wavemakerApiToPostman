@@ -33,8 +33,21 @@ jobs:
       - name: Use specific npm version
         run: npm i -g npm@${{ inputs.npm-version }}
 
-      - name: Lista dei file
-        run: ls -al
+      - name: Fetch wavemaker to postman javascript files.
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          
+        run: |
+          FILE_URL="https://api.github.com/repos/ItalyNewCode/wavemakerApiToPostman/refs/heads/main/package.json"
+          curl -H "Authorization: token $GITHUB_TOKEN" -H "Accept: application/vnd.github.v3.raw" -o package.json "$FILE_URL"
+          echo "Fetched main/package.json file."
+
+          # Fetch the postman-swagger.js  file
+          FILE_URL="https://api.github.com/repos/ItalyNewCode/wavemakerApiToPostman/refs/heads/main/postman-swagger.js"
+          curl -H "Authorization: token $GITHUB_TOKEN" -H "Accept: application/vnd.github.v3.raw" -o postman-swagger.js "$FILE_URL"
+          echo "Fetched postman-swagger.js file."
+
+          ls -al
 
       - name: Install script deps
         run: npm install
