@@ -35,13 +35,9 @@ on:
         required: true
       POSTMAN_WORKSPACE_ID:
         required: true
-      AWS_ACCESS_KEY_ID_1:
+      AWS_ACCESS_KEY_ID:
         required: false
-      AWS_SECRET_ACCESS_KEY_1:
-        required: false
-      AWS_ACCESS_KEY_ID_2:
-        required: false
-      AWS_SECRET_ACCESS_KEY_2:
+      AWS_SECRET_ACCESS_KEY:
         required: false
 
 jobs:
@@ -50,10 +46,8 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-      AWS_ACCESS_KEY_ID_1: ${{ secrets.AWS_ACCESS_KEY_ID_1 }}
-      AWS_SECRET_ACCESS_KEY_1: ${{ secrets.AWS_SECRET_ACCESS_KEY_1 }}
-      AWS_ACCESS_KEY_ID_2: ${{ secrets.AWS_ACCESS_KEY_ID_2 }}
-      AWS_SECRET_ACCESS_KEY_2: ${{ secrets.AWS_SECRET_ACCESS_KEY_2 }}
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
     steps:
       - name: Checkout (no code needed, but keeps workspace sane)
@@ -64,8 +58,7 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y jq
 
-      # ---- Try AWS Key Pair #1 ----
-      - name: Configure AWS credentials (Key #1)
+      - name: Configure AWS credentials
         id: cfg1
         if: ${{ env.AWS_ACCESS_KEY_ID_1 && env.AWS_SECRET_ACCESS_KEY_1 }}
         uses: aws-actions/configure-aws-credentials@v4
@@ -73,40 +66,6 @@ jobs:
           aws-access-key-id: ${{ env.AWS_ACCESS_KEY_ID_1 }}
           aws-secret-access-key: ${{ env.AWS_SECRET_ACCESS_KEY_1 }}
           aws-region: ${{ inputs.aws-region }}
-
-      - name: Verify AWS auth (Key #1)
-        id: verify1
-        if: ${{ steps.cfg1.outcome == 'success' }}
-        continue-on-error: true
-        run: |
-          set -e
-          aws sts get-caller-identity >/dev/null
-          echo "ok=1" >> "$GITHUB_OUTPUT"
-
-      # ---- Fallback to AWS Key Pair #2 if Key #1 missing or failed ----
-      - name: Configure AWS credentials (Key #2)
-        id: cfg2
-        if: ${{ (steps.verify1.outputs.ok != '1') && env.AWS_ACCESS_KEY_ID_2 && env.AWS_SECRET_ACCESS_KEY_2 }}
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          aws-access-key-id: ${{ env.AWS_ACCESS_KEY_ID_2 }}
-          aws-secret-access-key: ${{ env.AWS_SECRET_ACCESS_KEY_2 }}
-          aws-region: ${{ inputs.aws-region }}
-
-      - name: Verify AWS auth (Key #2)
-        id: verify2
-        if: ${{ steps.cfg2.outcome == 'success' }}
-        continue-on-error: true
-        run: |
-          set -e
-          aws sts get-caller-identity >/dev/null
-          echo "ok=1" >> "$GITHUB_OUTPUT"
-
-      - name: Fail if no AWS credentials worked
-        if: ${{ steps.verify1.outputs.ok != '1' && steps.verify2.outputs.ok != '1' }}
-        run: |
-          echo "::error::No working AWS credentials (tried Key #1 then Key #2)."
-          exit 1
 
       - name: Download Postman collection JSON
         env:
