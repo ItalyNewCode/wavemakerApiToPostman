@@ -31,7 +31,7 @@ on:
         required: true
         default: 'WM API Collection'
       upload-to-s3:
-        type: tring
+        type: string
         required: false
         default: "true"
     secrets:
