@@ -33,7 +33,7 @@ on:
     secrets:
       POSTMAN_API_KEY:
         required: true
-      POSTMAN_WORKSPACE_ID:
+      POSTMAN_COLLECTION_UID:
         required: true
       AWS_ACCESS_KEY_ID:
         required: false
@@ -70,13 +70,13 @@ jobs:
       - name: Download Postman collection JSON
         env:
           POSTMAN_API_KEY: ${{ secrets.POSTMAN_API_KEY }}
-          COLLECTION_UID: ${{ secrets.POSTMAN_WORKSPACE_ID }}
+          COLLECTION_UID: ${{ secrets.POSTMAN_COLLECTION_UID }}
         run: |
           set -euo pipefail
           POSTMAN_BASE="https://api.getpostman.com"
           # Download full response (includes { collection: {...} })
           curl -sS -H "X-Api-Key: ${POSTMAN_API_KEY}" \
-            "${POSTMAN_BASE}/collections/${POSTMAN_WORKSPACE_ID}" \
+            "${POSTMAN_BASE}/collections/${POSTMAN_COLLECTION_UID}" \
             -o collection_full.json
 
           # Extract only the "collection" payload to keep a clean collection JSON
@@ -142,7 +142,7 @@ jobs:
       - name: Run migration script
         env:
           POSTMAN_API_KEY: ${{ secrets.POSTMAN_API_KEY }}
-          POSTMAN_TARGET_UID: ${{ secrets.POSTMAN_WORKSPACE_ID }}
+          POSTMAN_COLLECTION_UID: ${{ secrets.POSTMAN_COLLECTION_UID }}
           POSTMAN_COLLECTION_NAME: ${{ inputs.target-collection }}
           POSTMAN_PRUNE: "true"
         run: node postman-swagger.js
