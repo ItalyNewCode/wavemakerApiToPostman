@@ -48,6 +48,12 @@ on:
       AWS_SECRET_ACCESS_KEY_2:
         required: false
 
+    env:
+      AWS_ACCESS_KEY_ID_1: ${{ secrets.AWS_ACCESS_KEY_ID_1 }}
+      AWS_SECRET_ACCESS_KEY_1: ${{ secrets.AWS_SECRET_ACCESS_KEY_1 }}
+      AWS_ACCESS_KEY_ID_2: ${{ secrets.AWS_ACCESS_KEY_ID_2 }}
+      AWS_SECRET_ACCESS_KEY_2: ${{ secrets.AWS_SECRET_ACCESS_KEY_2 }}
+
 jobs:
   postman-collection-to-s3:
     if: ${{ inputs.upload-to-s3 == true }}
@@ -66,11 +72,11 @@ jobs:
       # ---- Try AWS Key Pair #1 ----
       - name: Configure AWS credentials (Key #1)
         id: cfg1
-        if: ${{ secrets.AWS_ACCESS_KEY_ID_1 && secrets.AWS_SECRET_ACCESS_KEY_1 }}
+        if: ${{ env.AWS_ACCESS_KEY_ID_1 && env.AWS_SECRET_ACCESS_KEY_1 }}
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID_1 }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY_1 }}
+          aws-access-key-id: ${{ env.AWS_ACCESS_KEY_ID_1 }}
+          aws-secret-access-key: ${{ env.AWS_SECRET_ACCESS_KEY_1 }}
           aws-region: ${{ inputs.aws-region }}
 
       - name: Verify AWS auth (Key #1)
@@ -85,11 +91,11 @@ jobs:
       # ---- Fallback to AWS Key Pair #2 if Key #1 missing or failed ----
       - name: Configure AWS credentials (Key #2)
         id: cfg2
-        if: ${{ (steps.verify1.outputs.ok != '1') && secrets.AWS_ACCESS_KEY_ID_2 && secrets.AWS_SECRET_ACCESS_KEY_2 }}
+        if: ${{ (steps.verify1.outputs.ok != '1') && env.AWS_ACCESS_KEY_ID_2 && env.AWS_SECRET_ACCESS_KEY_2 }}
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID_2 }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY_2 }}
+          aws-access-key-id: ${{ env.AWS_ACCESS_KEY_ID_2 }}
+          aws-secret-access-key: ${{ env.AWS_SECRET_ACCESS_KEY_2 }}
           aws-region: ${{ inputs.aws-region }}
 
       - name: Verify AWS auth (Key #2)
