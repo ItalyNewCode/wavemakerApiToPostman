@@ -149,6 +149,7 @@ jobs:
           echo "Uploaded: $(cat s3_object_uri.txt)"
 
   swagger-to-postman:
+    needs: configure-elastic-beanstalk-enviroments
     name: Migrate collection from Wavemaker to Postman
     runs-on: ubuntu-latest
 
