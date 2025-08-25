@@ -30,6 +30,10 @@ on:
         type: string
         required: true
         default: 'WM API Collection'
+      upload-to-s3:
+        type: boolean
+        required: false
+        default: true
     secrets:
       POSTMAN_API_KEY:
         required: true
@@ -42,7 +46,7 @@ on:
 
 jobs:
   postman-collection-to-s3:
-    if: ${{ secrets.AWS_ACCESS_KEY_ID && secrets.AWS_SECRET_ACCESS_KEY }}
+    if: ${{ inputs.upload-to-s3 == true }}
     name: Download Postman Collection and upload to S3
     runs-on: ubuntu-latest
 
