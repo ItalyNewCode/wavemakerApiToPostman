@@ -70,7 +70,7 @@ jobs:
       - name: Download Postman collection JSON
         env:
           POSTMAN_API_KEY: ${{ secrets.POSTMAN_API_KEY }}
-          COLLECTION_UID: ${{ secrets.POSTMAN_COLLECTION_UID }}
+          POSTMAN_COLLECTION_UID: ${{ secrets.POSTMAN_COLLECTION_UID }}
         run: |
           set -euo pipefail
           POSTMAN_BASE="https://api.getpostman.com"
