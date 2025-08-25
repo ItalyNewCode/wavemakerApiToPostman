@@ -35,14 +35,14 @@ on:
         required: true
       POSTMAN_WORKSPACE_ID:
         required: true
-      aws-access-key-id:
+      AWS_ACCESS_KEY_ID:
         required: false
-      aws-secret-access-key:
+      AWS_SECRET_ACCESS_KEY:
         required: false
 
 jobs:
   postman-collection-to-s3:
-    if: ${{ secrets['aws-access-key-id'] && secrets['aws-secret-access-key'] }}
+    if: ${{ secrets.AWS_ACCESS_KEY_ID && secrets.AWS_SECRET_ACCESS_KEY }}
     name: Download Postman Collection and upload to S3
     runs-on: ubuntu-latest
 
@@ -59,8 +59,8 @@ jobs:
         
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          aws-access-key-id: ${{ secrets.aws-access-key-id }}
-          aws-secret-access-key: ${{ secrets.aws-secret-access-key }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ inputs.aws-region }}
 
       - name: Download Postman collection JSON
