@@ -48,17 +48,17 @@ on:
       AWS_SECRET_ACCESS_KEY_2:
         required: false
 
-    env:
-      AWS_ACCESS_KEY_ID_1: ${{ secrets.AWS_ACCESS_KEY_ID_1 }}
-      AWS_SECRET_ACCESS_KEY_1: ${{ secrets.AWS_SECRET_ACCESS_KEY_1 }}
-      AWS_ACCESS_KEY_ID_2: ${{ secrets.AWS_ACCESS_KEY_ID_2 }}
-      AWS_SECRET_ACCESS_KEY_2: ${{ secrets.AWS_SECRET_ACCESS_KEY_2 }}
-
 jobs:
   postman-collection-to-s3:
     if: ${{ inputs.upload-to-s3 == true }}
     name: Download Postman Collection and upload to S3
     runs-on: ubuntu-latest
+
+    env:
+      AWS_ACCESS_KEY_ID_1: ${{ secrets.AWS_ACCESS_KEY_ID_1 }}
+      AWS_SECRET_ACCESS_KEY_1: ${{ secrets.AWS_SECRET_ACCESS_KEY_1 }}
+      AWS_ACCESS_KEY_ID_2: ${{ secrets.AWS_ACCESS_KEY_ID_2 }}
+      AWS_SECRET_ACCESS_KEY_2: ${{ secrets.AWS_SECRET_ACCESS_KEY_2 }}
 
     steps:
       - name: Checkout (no code needed, but keeps workspace sane)
