@@ -27,6 +27,7 @@ on:
         type: string
         default: 'collection'
       target-collection:
+        type: string
         required: true
         default: 'WM API Collection'
     secrets:
@@ -41,7 +42,7 @@ on:
 
 jobs:
   postman-collection-to-s3:
-    if: ${{ secrets.aws-access-key-id != '' && secrets.aws-secret-access-key != '' }}
+    if: ${{ secrets['aws-access-key-id'] && secrets['aws-secret-access-key'] }}
     name: Download Postman Collection and upload to S3
     runs-on: ubuntu-latest
 
