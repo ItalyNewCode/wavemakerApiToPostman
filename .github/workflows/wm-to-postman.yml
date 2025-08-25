@@ -1,4 +1,4 @@
-name: REUSABLE ACTION - Build and Deploy a WAVEMAKER application to AWS Elastic Beanstalk
+name: REUSABLE ACTION - Build a backup of Postman collection to S3 and migrate from Wavemaker to Postman
 
 on:
   workflow_call:
@@ -11,15 +11,92 @@ on:
         required: false
         type: string
         default: '10.9.0'
+      aws-region:
+        required: false
+        type: string
+        default: 'eu-west-1'
+      s3-bucket:
+        required: false
+        type: string
+      s3-prefix:
+        required: false
+        type: string
+        default: 'postman-collections'
+      file-base:
+        required: false
+        type: string
+        default: 'collection'
+      target-collection:
+        required: true
+        default: 'WM API Collection'
     secrets:
       POSTMAN_API_KEY:
         required: true
       POSTMAN_WORKSPACE_ID:
         required: true
-      TARGET_COLLECTION:
-        required: true
+      aws-access-key-id:
+        required: false
+      aws-secret-access-key:
+        required: false
 
 jobs:
+  postman-collection-to-s3:
+    if: ${{ secrets.aws-access-key-id != '' && secrets.aws-secret-access-key != '' }}
+    name: Download Postman Collection and upload to S3
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout (no code needed, but keeps workspace sane)
+        uses: actions/checkout@v4
+
+      - name: Install jq
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y jq
+
+      - name: Configure AWS credentials
+        
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.aws-access-key-id }}
+          aws-secret-access-key: ${{ secrets.aws-secret-access-key }}
+          aws-region: ${{ inputs.aws-region }}
+
+      - name: Download Postman collection JSON
+        env:
+          POSTMAN_API_KEY: ${{ secrets.POSTMAN_API_KEY }}
+          COLLECTION_UID: ${{ secrets.POSTMAN_WORKSPACE_ID }}
+        run: |
+          set -euo pipefail
+          POSTMAN_BASE="https://api.getpostman.com"
+          # Download full response (includes { collection: {...} })
+          curl -sS -H "X-Api-Key: ${POSTMAN_API_KEY}" \
+            "${POSTMAN_BASE}/collections/${POSTMAN_WORKSPACE_ID}" \
+            -o collection_full.json
+
+          # Extract only the "collection" payload to keep a clean collection JSON
+          jq -c '.collection' collection_full.json > collection.json
+
+          echo "Saved collection.json"
+          ls -l collection.json
+
+      - name: Upload to S3
+        env:
+          BUCKET: ${{ inputs.s3-bucket }}
+          PREFIX: ${{ inputs.s3-prefix }}
+          FILE_BASE: ${{ inputs.file-base }}
+        run: |
+          set -euo pipefail
+          TS="$(date -u +'%Y%m%dT%H%M%SZ')"
+          KEY="${PREFIX%/}/${FILE_BASE}-${TS}.json"
+          echo "Uploading to s3://${BUCKET}/${KEY}"
+          aws s3 cp collection.json "s3://${BUCKET}/${KEY}" --only-show-errors
+          echo "s3://${BUCKET}/${KEY}" > s3_object_uri.txt
+
+      - name: Output uploaded object URI
+        run: |
+          echo "Uploaded: $(cat s3_object_uri.txt)"
+
   swagger-to-postman:
     name: Migrate collection from Wavemaker to Postman
     runs-on: ubuntu-latest
@@ -28,7 +105,7 @@ jobs:
       - name: Checkout caller repo
         uses: actions/checkout@v3
         with:
-          repository: ${{ github.repository }}   # checks out the repo that triggered the workflow
+          repository: ${{ github.repository }} 
           ref: ${{ github.ref }}
 
       - name: Setup Node.js
@@ -60,6 +137,6 @@ jobs:
         env:
           POSTMAN_API_KEY: ${{ secrets.POSTMAN_API_KEY }}
           POSTMAN_TARGET_UID: ${{ secrets.POSTMAN_WORKSPACE_ID }}
-          POSTMAN_COLLECTION_NAME: ${{ secrets.TARGET_COLLECTION }}
+          POSTMAN_COLLECTION_NAME: ${{ inputs.target-collection }}
           POSTMAN_PRUNE: "true"
         run: node postman-swagger.js
