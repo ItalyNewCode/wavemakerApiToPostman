@@ -39,9 +39,13 @@ on:
         required: true
       POSTMAN_WORKSPACE_ID:
         required: true
-      AWS_ACCESS_KEY_ID:
+      AWS_ACCESS_KEY_ID_1:
         required: false
-      AWS_SECRET_ACCESS_KEY:
+      AWS_SECRET_ACCESS_KEY_1:
+        required: false
+      AWS_ACCESS_KEY_ID_2:
+        required: false
+      AWS_SECRET_ACCESS_KEY_2:
         required: false
 
 jobs:
@@ -59,13 +63,49 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y jq
 
-      - name: Configure AWS credentials
-        
+      # ---- Try AWS Key Pair #1 ----
+      - name: Configure AWS credentials (Key #1)
+        id: cfg1
+        if: ${{ secrets.AWS_ACCESS_KEY_ID_1 && secrets.AWS_SECRET_ACCESS_KEY_1 }}
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID_1 }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY_1 }}
           aws-region: ${{ inputs.aws-region }}
+
+      - name: Verify AWS auth (Key #1)
+        id: verify1
+        if: ${{ steps.cfg1.outcome == 'success' }}
+        continue-on-error: true
+        run: |
+          set -e
+          aws sts get-caller-identity >/dev/null
+          echo "ok=1" >> "$GITHUB_OUTPUT"
+
+      # ---- Fallback to AWS Key Pair #2 if Key #1 missing or failed ----
+      - name: Configure AWS credentials (Key #2)
+        id: cfg2
+        if: ${{ (steps.verify1.outputs.ok != '1') && secrets.AWS_ACCESS_KEY_ID_2 && secrets.AWS_SECRET_ACCESS_KEY_2 }}
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID_2 }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY_2 }}
+          aws-region: ${{ inputs.aws-region }}
+
+      - name: Verify AWS auth (Key #2)
+        id: verify2
+        if: ${{ steps.cfg2.outcome == 'success' }}
+        continue-on-error: true
+        run: |
+          set -e
+          aws sts get-caller-identity >/dev/null
+          echo "ok=1" >> "$GITHUB_OUTPUT"
+
+      - name: Fail if no AWS credentials worked
+        if: ${{ steps.verify1.outputs.ok != '1' && steps.verify2.outputs.ok != '1' }}
+        run: |
+          echo "::error::No working AWS credentials (tried Key #1 then Key #2)."
+          exit 1
 
       - name: Download Postman collection JSON
         env:
